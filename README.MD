@@ -274,6 +274,168 @@ pipeline {
 ![preview](39.png)
 ![preview](40.png)
 
+### 4.Declarative pipeline 
+
+```
+pipeline {
+    agent any
+
+    environment {
+        MAVEN_HOME = 'C:\\Program Files (x86)\\maven\\apache-maven-3.9.9'
+        PATH = "${MAVEN_HOME}\\bin;${env.PATH}" // Ensure Maven is in the PATH
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                script {
+                    echo 'Cleaning the workspace...'
+                    // Clean the entire workspace before starting the new build
+                    deleteDir() // This will delete all files in the workspace
+                }
+            }
+        }
+
+        stage('Generate Web App') {
+            steps {
+                script {
+                    echo 'Running Maven to generate the web app...'
+                    // Run the Maven archetype command to create the Maven webapp project
+                    bat '''
+                        mvn archetype:generate -DgroupId=com.example -DartifactId=helloworld -DarchetypeArtifactId=maven-archetype-webapp -DinteractiveMode=false
+                    '''
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    echo 'Building the Maven project...'
+                    dir('helloworld') {
+                        bat 'mvn clean package' // This will create the target/helloworld.war file
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    echo 'Deploying the WAR file to Tomcat...'
+                    // Copy the .war file to Tomcat's webapps directory
+                    bat '''
+                        copy "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\pipeline3\\helloworld\\target\\helloworld.war" "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\"
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Build completed.'
+        }
+        
+        success {
+            echo 'Build was successful.'
+        }
+        
+        failure {
+            echo 'Build failed.'
+        }
+    }
+}
+```
+* Save the pipeline configuration.
+* Click "Build Now" to trigger the pipeline.
+* Monitor the stages under the "Build" section to ensure successful execution.
+![preview](41.png)
+![preview](42.png)
+
+### To browse this application helloworld application
+
+```
+http://localhost:8081
+```
+![preview](18.png).
+
+
+
+# Steps to Create and Deploy a Maven Web Application on Tomcat
+### 1. Remove Old Project Directory
+* First up, let’s clean up any old helloworld directory that might be hanging around. You can use this command:
+
+```
+rmdir /S /Q helloworld
+```
+* This removes the directory and everything inside it, no questions asked.
+### 2. Generate a New Maven Web Application
+
+* Now, let’s create a fresh Maven web app project using a standard template. Run this:
+```
+mvn archetype:generate ^
+    -DgroupId=com.example ^
+    -DartifactId=helloworld ^
+    -DarchetypeArtifactId=maven-archetype-webapp ^
+    -DinteractiveMode=false
+```
+* This will create a new project with the name helloworld under the com.example group ID. The template will be a basic web app setup.
+### 3. Move into the Project Directory
+* After generating the project, go ahead and navigate to the project folder:
+```
+cd helloworld
+```
+### 4. Clean and Build the Project
+
+* Next up, let’s clean any previous build files and create the .war package that we’ll deploy later:
+```
+mvn clean package
+```
+
+* This command will clean up old builds and package your project into a .war (Web Application Archive) file that Tomcat can deploy.
+### 5. Go to the Target Folder
+* Once the build is complete, head to the target folder where your .war file is located:
+```
+cd target
+```
+* This is where the magic happens—the packaged helloworld.war file is ready to be deployed.
+### 6. Copy the WAR File to Tomcat’s Web Apps Folder
+* Now, copy the .war file to Tomcat’s webapps folder. This is where Tomcat looks for new applications to deploy:
+```
+copy target\helloworld.war C:\Program Files\Apache Software Foundation\Tomcat 9.0\webapps\
+```
+* Once copied, Tomcat will automatically detect and deploy the app.
+### 7. Navigate to Tomcat's Bin Directory
+* Next, go to Tomcat’s bin directory, where the scripts to start and stop Tomcat are located:
+```
+cd C:\Program Files\Apache Software Foundation\Tomcat 9.0\bin
+```
+* This is the folder that contains the startup.bat script you need to run.
+### 8. Start the Tomcat Server
+* Finally, run the startup.bat script to fire up Tomcat and deploy your app:
+```
+startup.bat
+```
+* Tomcat will start up, deploy your helloworld.war file, and your app will be live.
+### browse the application
+```
+http:\\localhost:8081
+```
+
+![preview](17.png)
+![preview](18.png)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
